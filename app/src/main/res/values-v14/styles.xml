@@ -1,0 +1,35 @@
+<resources>
+
+    <style name="AppTheme" parent="android:Theme.Holo.Light">
+        <item name="android:actionBarStyle">@style/AppTheme.ActionBar</item>
+        <item name="android:editTextStyle">@style/AppTheme.EditText</item>
+        <item name="android:textViewStyle">@style/AppTheme.TextView</item>
+
+        <item name="android:homeAsUpIndicator">@null</item>
+        <item name="android:windowContentOverlay">@null</item>
+    </style>
+
+    <style name="AppTheme.NoActionBar" parent="android:Theme.Holo.Light.NoActionBar">
+        <item name="android:actionBarStyle">@style/AppTheme.ActionBar</item>
+        <item name="android:editTextStyle">@style/AppTheme.EditText</item>
+    </style>
+
+    <style name="AppTheme.ActionBar" parent="android:Widget.Holo.Light.ActionBar">
+        <item name="android:background">@drawable/primary</item>
+        <item name="android:actionBarSize">@dimen/action_bar_size</item>
+    </style>
+
+    <style name="AppTheme.EditText" parent="android:Widget.EditText">
+        <item name="android:textColor">@color/text</item>
+        <item name="android:textColorHint">@color/text_light</item>
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:textSize">@dimen/text_regular</item>
+    </style>
+
+    <style name="AppTheme.TextView" parent="android:Widget.TextView">
+        <item name="android:textColor">@color/text</item>
+        <item name="android:textColorHint">@color/text_light</item>
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:textSize">@dimen/text_regular</item>
+    </style>
+</resources>

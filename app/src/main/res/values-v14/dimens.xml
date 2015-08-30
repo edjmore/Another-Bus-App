@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="status_bar_height">25dip</dimen>
+    <dimen name="action_bar_size">80dp</dimen>
+
+    <dimen name="icon_size">52dp</dimen>
+    <dimen name="icon_padding">14dp</dimen>
+
+    <!-- text sizes -->
+    <dimen name="text_smallest">12sp</dimen>
+    <dimen name="text_small">14sp</dimen>
+    <dimen name="text_regular">16sp</dimen>
+    <dimen name="text_large">20sp</dimen>
+    <dimen name="text_largest">34sp</dimen>
+</resources>

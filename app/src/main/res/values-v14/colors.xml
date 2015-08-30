@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#E91E63</color>
+    <color name="accent">#00E5FF</color>
+
+    <color name="background">#FAFAFA</color>
+    <color name="divider">#1f000000</color>
+
+    <color name="text_light">@color/icon_inactive</color>
+    <color name="text">#DE000000</color>
+    <color name="text_secondary">@color/icon_active</color>
+    <color name="white_text_inactive">#B3FFFFFF</color>
+
+    <color name="icon_inactive">#42000000</color>
+    <color name="icon_active">#8A000000</color>
+
+    <drawable name="primary">@color/primary</drawable>
+    <drawable name="accent">@color/accent</drawable>
+</resources>
