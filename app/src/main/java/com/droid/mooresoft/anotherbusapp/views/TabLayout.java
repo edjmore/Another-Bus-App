@@ -86,6 +86,8 @@ public class TabLayout extends HorizontalScrollView {
             for (int i = 0; i < mStrip.getChildCount(); i++) {
                 if (v == mStrip.getChildAt(i)) {
                     mViewPager.setCurrentItem(i, true);
+                    mStrip.mCurrentPosition = i;
+                    mStrip.invalidate();
                 }
             }
         }
@@ -125,7 +127,7 @@ public class TabLayout extends HorizontalScrollView {
             super(context, attrs);
             setWillNotDraw(false);
             float density = getResources().getDisplayMetrics().density;
-            mUnderlineThickness = 4 * density; // = 4dp
+            mUnderlineThickness = 2 * density; // = 2dp
             mSeperatorThickness = 1 * density; // = 1dp
         }
 

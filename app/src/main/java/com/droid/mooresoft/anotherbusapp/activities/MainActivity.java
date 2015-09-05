@@ -6,6 +6,7 @@ import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
@@ -37,6 +38,7 @@ import com.droid.mooresoft.anotherbusapp.ParseUtils;
 import com.droid.mooresoft.anotherbusapp.R;
 import com.droid.mooresoft.anotherbusapp.Stop;
 import com.droid.mooresoft.anotherbusapp.UrlFactory;
+import com.droid.mooresoft.materiallibrary.widgets.FloatingActionButton;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -102,11 +104,12 @@ public class MainActivity extends Activity {
             mGoogleMap.setMyLocationEnabled(true); // want to show location indicator
             mGoogleMap.getUiSettings().setMyLocationButtonEnabled(false); // don't want to show the button
             // using custom 'my location' button
-            Button myLocationButton = (Button) findViewById(R.id.my_location_button);
+            FloatingActionButton myLocationButton = (FloatingActionButton) findViewById(R.id.my_location_button);
             myLocationButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Location myLocation = mGoogleMap.getMyLocation();
+                    if (myLocation == null) return;
                     LatLng myLatLng = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
                     // animate to user position
                     mGoogleMap.animateCamera(CameraUpdateFactory.newLatLng(myLatLng));
@@ -159,7 +162,7 @@ public class MainActivity extends Activity {
         }
     };
 
-    private static final int MIN_ZOOM = 16;
+    private static final int MIN_ZOOM = 17;
 
     public static class SearchFragment extends Fragment {
         @Override

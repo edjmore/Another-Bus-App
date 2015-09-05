@@ -20,31 +20,46 @@
                 android:id="@+id/home"
                 android:layout_width="@dimen/icon_size"
                 android:layout_height="@dimen/icon_size"
-                android:layout_gravity="center_vertical"
+                android:layout_gravity="center"
                 android:padding="@dimen/icon_padding" />
 
             <TextView
                 android:id="@+id/action_bar_title"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="match_parent"
+                android:singleLine="true"
                 android:layout_marginLeft="8dp"
                 android:layout_marginStart="8dp"
-                android:gravity="center"
+                android:layout_weight="1"
+                android:gravity="left|center_vertical"
                 android:textColor="@android:color/white"
                 android:textSize="@dimen/text_large" />
+
+            <ImageView
+                android:id="@+id/action_favorite"
+                android:layout_width="@dimen/icon_size"
+                android:layout_gravity="center"
+                android:layout_height="@dimen/icon_size"
+                android:padding="@dimen/icon_padding" />
         </LinearLayout>
 
-        <com.droid.mooresoft.anotherbusapp.TabLayout
+        <com.droid.mooresoft.anotherbusapp.views.TabLayout
             android:id="@+id/tab_layout"
             android:layout_width="match_parent"
             android:layout_height="?android:attr/actionBarSize"
             android:background="@color/primary" />
 
+        <!-- todo: tab layout shadow -->
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:scaleType="fitXY"
+            android:src="@mipmap/tab_layout_shadow" />
+
         <RelativeLayout
             android:id="@+id/error_container"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1">
+            android:layout_height="match_parent">
 
             <!-- normal content view -->
             <android.support.v4.view.ViewPager
@@ -65,9 +80,8 @@
                     android:id="@+id/error_text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_margin="12dp"
                     android:gravity="center"
-                    android:padding="24dp"
+                    android:padding="18dp"
                     android:text="@string/default_error"
                     android:textColor="@color/text_secondary"
                     android:textSize="@dimen/text_large"

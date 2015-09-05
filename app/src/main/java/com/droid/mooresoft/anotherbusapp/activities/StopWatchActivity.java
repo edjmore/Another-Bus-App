@@ -1,33 +1,25 @@
 package com.droid.mooresoft.anotherbusapp.activities;
 
-import android.app.ActionBar;
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
+import android.media.Image;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.util.Pair;
-import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.droid.mooresoft.anotherbusapp.AndroidUtils;
 import com.droid.mooresoft.anotherbusapp.Data;
@@ -37,16 +29,13 @@ import com.droid.mooresoft.anotherbusapp.HttpRequestTask;
 import com.droid.mooresoft.anotherbusapp.ParseUtils;
 import com.droid.mooresoft.anotherbusapp.R;
 import com.droid.mooresoft.anotherbusapp.Stop;
-import com.droid.mooresoft.anotherbusapp.TabLayout;
+import com.droid.mooresoft.anotherbusapp.views.TabLayout;
 import com.droid.mooresoft.anotherbusapp.UrlFactory;
 
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -148,9 +137,11 @@ public class StopWatchActivity extends FragmentActivity {
                     }
                 }
                 // error stuff
+                mErrorText.setText(R.string.default_error);
                 mErrorText.setVisibility(ok ? View.GONE : View.VISIBLE);
                 mErrorRefreshButton.setVisibility(ok ? View.GONE : View.VISIBLE);
-                if (mStopPointToDepartureListMap.isEmpty()) {
+                mViewPager.setVisibility(ok ? View.VISIBLE : View.INVISIBLE);
+                if (mStopPointToDepartureListMap != null && mStopPointToDepartureListMap.isEmpty()) {
                     // no error, but also no departures
                     mErrorText.setText(R.string.no_departures);
                     mErrorText.setVisibility(View.VISIBLE);
@@ -183,6 +174,10 @@ public class StopWatchActivity extends FragmentActivity {
                 finish();
             }
         });
+        // todo: favorite stops
+        ImageView favView = (ImageView) findViewById(R.id.action_favorite);
+        Drawable star = AndroidUtils.getTintedDrawable(R.mipmap.ic_star, Color.WHITE, this);
+        favView.setImageDrawable(star);
     }
 
     public static final int MIN_REQUEST_INTERVAL = 1000 * 60; // millis
@@ -209,6 +204,7 @@ public class StopWatchActivity extends FragmentActivity {
         public void notifyDataSetChanged() {
             if (mStopPointToDepartureListMap == null) {
                 // there must have been an error
+                Log.d(getClass().toString(), "removing all views...");
                 mViewPager.removeAllViews();
             } else {
                 // proceed with normal view setup
@@ -319,6 +315,18 @@ public class StopWatchActivity extends FragmentActivity {
                         R.drawable.circle, getResources().getColor(R.color.background), getContext());
                 outerCircle.setImageDrawable(outer);
                 innerCircle.setImageDrawable(inner);
+                // todo: alarm indicator
+                if (Math.random() * 100 < 33) {
+                    ImageView alarmView = (ImageView) convertView.findViewById(R.id.icon_alarm);
+                    Drawable alarm = AndroidUtils.getTintedDrawable(
+                            R.mipmap.ic_alarm_on, getResources().getColor(R.color.icon_inactive), getContext());
+                    alarmView.setImageDrawable(alarm);
+                }
+                /* todo: busy indicator
+                ImageView busyView = (ImageView) convertView.findViewById(R.id.icon_busy);
+                Drawable people = AndroidUtils.getTintedDrawable(
+                        R.mipmap.ic_people, getResources().getColor(R.color.icon_inactive), getContext());
+                busyView.setImageDrawable(people); */
                 return convertView;
             }
         }
