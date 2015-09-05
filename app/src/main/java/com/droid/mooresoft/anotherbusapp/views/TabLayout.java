@@ -1,4 +1,4 @@
-package com.droid.mooresoft.anotherbusapp;
+package com.droid.mooresoft.anotherbusapp.views;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
@@ -17,6 +17,8 @@ import android.view.View;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.droid.mooresoft.anotherbusapp.R;
 
 /**
  * Created by Ed on 8/25/15.
@@ -67,10 +69,10 @@ public class TabLayout extends HorizontalScrollView {
     }
 
     private void scrollToTab(int tabPosition, float offset) {
-        View tab = getChildAt(tabPosition);
+        View tab = mStrip.getChildAt(tabPosition);
         if (tab != null) {
-            int left = tab.getLeft() + (int) (offset * tab.getWidth());
-            scrollTo(left, 0);
+            float pxOffset = offset * tab.getWidth();
+            scrollTo(tab.getLeft() + (int) pxOffset, 0);
         }
     }
 
