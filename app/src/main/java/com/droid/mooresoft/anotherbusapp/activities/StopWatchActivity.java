@@ -2,9 +2,7 @@ package com.droid.mooresoft.anotherbusapp.activities;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
-import android.media.Image;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.PagerAdapter;
@@ -14,23 +12,26 @@ import android.util.Log;
 import android.util.Pair;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.droid.mooresoft.anotherbusapp.AndroidUtils;
 import com.droid.mooresoft.anotherbusapp.Data;
 import com.droid.mooresoft.anotherbusapp.Departure;
+import com.droid.mooresoft.anotherbusapp.Favorites;
 import com.droid.mooresoft.anotherbusapp.GlobalVariables;
 import com.droid.mooresoft.anotherbusapp.HttpRequestTask;
 import com.droid.mooresoft.anotherbusapp.ParseUtils;
 import com.droid.mooresoft.anotherbusapp.R;
 import com.droid.mooresoft.anotherbusapp.Stop;
-import com.droid.mooresoft.anotherbusapp.views.TabLayout;
 import com.droid.mooresoft.anotherbusapp.UrlFactory;
+import com.droid.mooresoft.anotherbusapp.views.TabLayout;
 
 import org.json.JSONException;
 
@@ -54,6 +55,8 @@ public class StopWatchActivity extends FragmentActivity {
         setTitle(stopName);
         Log.d(getClass().toString(), "onCreate() " + stopName);
         mStop = GlobalVariables.getInstance(this).getStopMap().get(stopName);
+        // favorites indicator in action bar
+        setupFavoritesIndicator();
         // view pager setup
         mViewPager = (ViewPager) findViewById(R.id.view_pager);
         mPagerAdapter = new DepartureListAdapter();
@@ -63,8 +66,6 @@ public class StopWatchActivity extends FragmentActivity {
         mTabs.setViewPager(mViewPager);
         // progress spinner setup
         mProgressBar = (ProgressBar) findViewById(R.id.progress_bar);
-        mProgressBar.getIndeterminateDrawable().setColorFilter(getResources().getColor(R.color.accent),
-                PorterDuff.Mode.SRC_IN);
         mProgressBar.setVisibility(View.VISIBLE);
         // error layout
         mErrorText = (TextView) findViewById(R.id.error_text);
@@ -174,10 +175,29 @@ public class StopWatchActivity extends FragmentActivity {
                 finish();
             }
         });
-        // todo: favorite stops
+    }
+
+    private void setupFavoritesIndicator() {
         ImageView favView = (ImageView) findViewById(R.id.action_favorite);
-        Drawable star = AndroidUtils.getTintedDrawable(R.mipmap.ic_star, Color.WHITE, this);
+        int resId = Favorites.isFavorite(mStop, this) ? R.mipmap.ic_star_filled : R.mipmap.ic_star;
+        Drawable star = AndroidUtils.getTintedDrawable(resId, Color.WHITE, this);
         favView.setImageDrawable(star);
+        favView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                boolean isFav = Favorites.isFavorite(mStop, getApplicationContext());
+                // update UI
+                String toastText = mStop.stopName +
+                        (isFav ? " removed from favorites" : " added to favorites");
+                int resId = isFav ? R.mipmap.ic_star : R.mipmap.ic_star_filled;
+                Drawable star = AndroidUtils.getTintedDrawable(resId, Color.WHITE, getApplicationContext());
+                ((ImageView) v).setImageDrawable(star);
+                Toast.makeText(getApplicationContext(), toastText, Toast.LENGTH_SHORT).show();
+                // update favorites data
+                if (isFav) Favorites.removeFavorite(mStop, getApplicationContext());
+                else Favorites.addFavorite(mStop, getApplicationContext());
+            }
+        });
     }
 
     public static final int MIN_REQUEST_INTERVAL = 1000 * 60; // millis
@@ -245,6 +265,12 @@ public class StopWatchActivity extends FragmentActivity {
             list.setAdapter(adapter);
             adapter.clear();
             adapter.addAll(mStopPointToDepartureListMap.get(tag));
+            list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    // todo: want to be able to set stop alarms
+                }
+            });
             // setup refresh behavior
             SwipeRefreshLayout refreshLayout = (SwipeRefreshLayout) root.findViewById(R.id.swipe_refresh_layout);
             refreshLayout.setOnRefreshListener(mRefreshListener);

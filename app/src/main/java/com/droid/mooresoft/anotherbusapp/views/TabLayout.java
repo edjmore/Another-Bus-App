@@ -1,17 +1,11 @@
 package com.droid.mooresoft.anotherbusapp.views;
 
-import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.graphics.Typeface;
-import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.HorizontalScrollView;
@@ -59,7 +53,7 @@ public class TabLayout extends HorizontalScrollView {
             tv.setTextColor(i == mViewPager.getCurrentItem() ?
                     getResources().getColor(R.color.accent) :
                     getResources().getColor(R.color.white_text_inactive));
-            tv.setTextSize(16);
+            tv.setTextSize(15);
             float density = getResources().getDisplayMetrics().density;
             tv.setPadding((int) (10 * density), 0, (int) (10 * density), 0); // = 6dp padding on both sides
             tv.setText(title);

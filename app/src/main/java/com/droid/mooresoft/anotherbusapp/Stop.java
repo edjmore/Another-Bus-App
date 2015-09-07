@@ -23,11 +23,8 @@ public class Stop {
             JSONObject jsonStopPoint = jsonStopPoints.getJSONObject(i);
             stopPoints.add(new StopPoint(jsonStopPoint));
         }
+        jsonString = jsonStop.toString();
     }
-
-    public String stopId;
-    public String stopName;
-    public ArrayList<StopPoint> stopPoints;
 
     public LatLng getLocation() {
         double avgLat = 0, avgLon = 0;
@@ -39,6 +36,11 @@ public class Stop {
         avgLon /= stopPoints.size();
         return new LatLng(avgLat, avgLon);
     }
+
+    public String stopId;
+    public String stopName;
+    public ArrayList<StopPoint> stopPoints;
+    public String jsonString;
 
     public class StopPoint {
 

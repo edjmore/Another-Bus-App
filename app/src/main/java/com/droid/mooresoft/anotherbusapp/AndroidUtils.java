@@ -3,6 +3,9 @@ package com.droid.mooresoft.anotherbusapp;
 import android.content.Context;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.location.Criteria;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
@@ -32,6 +35,26 @@ public class AndroidUtils {
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
         return activeNetwork != null &&
                 activeNetwork.isConnectedOrConnecting();
+    }
 
+    public static void requestCurrentLocation(LocationListener listener, Context context) {
+        LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        Criteria criteria = new Criteria();
+        criteria.setAccuracy(Criteria.ACCURACY_FINE); // would like to use GPS if possible
+        criteria.setAltitudeRequired(false);
+        criteria.setBearingRequired(false);
+        criteria.setSpeedRequired(false);
+        lm.requestSingleUpdate(criteria, listener, null /* todo: should we use a 'Looper?' */);
+    }
+
+    public static void requestLocationUpdates(LocationListener listener,
+                                              long minTime, float minDistance, Context context) {
+        LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        Criteria criteria = new Criteria();
+        criteria.setAccuracy(Criteria.ACCURACY_FINE); // would like to use GPS if possible
+        criteria.setAltitudeRequired(false);
+        criteria.setBearingRequired(false);
+        criteria.setSpeedRequired(false);
+        lm.requestLocationUpdates(minTime, minDistance, criteria, listener, null /* todo: 'Looper?' */);
     }
 }

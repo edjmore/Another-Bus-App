@@ -7,8 +7,8 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:clipChildren="false"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:clipChildren="false">
 
         <!-- status bar background -->
         <View
@@ -22,6 +22,11 @@
             android:layout_height="match_parent" />
 
         <FrameLayout
+            android:id="@+id/map_fragment_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"></FrameLayout>
+
+        <FrameLayout
             android:id="@+id/top_fragment_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
@@ -31,11 +36,11 @@
             android:layout_width="@dimen/icon_size"
             android:layout_height="@dimen/icon_size"
             android:layout_alignParentBottom="true"
-            android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
-            android:layout_marginRight="16dp"
-            android:layout_marginEnd="16dp"
+            android:layout_alignParentRight="true"
             android:layout_marginBottom="72dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginRight="16dp"
             material:m_color="@color/primary"
             material:m_elevation="6dp"
             material:m_force_z_reorder="false"
@@ -50,5 +55,17 @@
         android:background="@android:color/white"
         android:orientation="vertical">
 
+        <ImageView
+            android:id="@+id/hero_image"
+            android:layout_width="match_parent"
+            android:layout_height="280dp"
+            android:src="@mipmap/large_bus" />
+
+        <ListView
+            android:id="@+id/drawer_list"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:divider="@null" />
     </LinearLayout>
 </android.support.v4.widget.DrawerLayout>

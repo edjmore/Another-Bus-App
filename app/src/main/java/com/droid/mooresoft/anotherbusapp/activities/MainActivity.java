@@ -6,17 +6,17 @@ import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
+import android.location.LocationListener;
 import android.os.Bundle;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.widget.CardView;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.util.Pair;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,6 +25,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -38,8 +39,10 @@ import com.droid.mooresoft.anotherbusapp.ParseUtils;
 import com.droid.mooresoft.anotherbusapp.R;
 import com.droid.mooresoft.anotherbusapp.Stop;
 import com.droid.mooresoft.anotherbusapp.UrlFactory;
+import com.droid.mooresoft.anotherbusapp.fragments.AboutFragment;
+import com.droid.mooresoft.anotherbusapp.fragments.FavoritesFragment;
+import com.droid.mooresoft.anotherbusapp.fragments.SettingsFragment;
 import com.droid.mooresoft.materiallibrary.widgets.FloatingActionButton;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMapOptions;
@@ -69,18 +72,92 @@ public class MainActivity extends Activity {
         FragmentTransaction trans = getFragmentManager().beginTransaction();
         MapFragment mapFragment = MapFragment.newInstance(getDefaultMapOptions());
         mapFragment.getMapAsync(mOnMapReadyListener);
-        trans.replace(R.id.bottom_fragment_container, mapFragment);
+        trans.replace(R.id.map_fragment_container, mapFragment);
         trans.replace(R.id.top_fragment_container, new SearchFragment());
         trans.commit();
         // other initialization
         initializeDrawer();
     }
 
+    public void openDrawer() {
+        mDrawerLayout.openDrawer(GravityCompat.START);
+    }
+
     private void initializeDrawer() {
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         // ToDo: drawer list view
-        // ToDo: change fragments based on drawer selection
-        // ToDo: dummy on click listener
+        ListView drawerList = (ListView) mDrawerLayout.findViewById(R.id.drawer_list);
+        drawerList.setAdapter(
+                new ArrayAdapter<String>(this, R.layout.drawer_item, getResources().getStringArray(R.array.drawer_titles)) {
+                    @Override
+                    public View getView(int position, View convertView, ViewGroup parent) {
+                        if (convertView == null && getItem(position).equals("div")) {
+                            // this will be a separator
+                            convertView = View.inflate(getContext(), R.layout.drawer_seperator, null);
+                            return convertView;
+                        }
+                        if (convertView == null) {
+                            convertView = View.inflate(getContext(), R.layout.drawer_item, null);
+                        }
+                        ImageView iconView = (ImageView) convertView.findViewById(R.id.item_icon);
+                        int resId;
+                        switch (position) {
+                            case 0:
+                                resId = R.mipmap.ic_about;
+                                break;
+                            case 2:
+                                resId = R.mipmap.ic_map;
+                                break;
+                            case 3:
+                                resId = R.mipmap.ic_star_filled_title;
+                                break;
+                            default:
+                                resId = R.mipmap.ic_settings;
+                                break;
+                        }
+                        Drawable icon = AndroidUtils.getTintedDrawable(
+                                resId, getResources().getColor(R.color.icon_inactive), getContext());
+                        iconView.setImageDrawable(icon);
+                        TextView titleView = (TextView) convertView.findViewById(R.id.item_title);
+                        titleView.setText(getItem(position));
+                        return convertView;
+                    }
+                });
+        drawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if (position == 1 || position == 4) return; // dividers
+                // close the drawer
+                mDrawerLayout.closeDrawer(GravityCompat.START);
+                TextView tv = (TextView) view.findViewById(R.id.item_title);
+                String title = tv.getText().toString();
+                // show the appropriate fragment
+                FragmentTransaction trans = getFragmentManager().beginTransaction();
+                if (title.equals("Favorites")) {
+                    trans.replace(R.id.bottom_fragment_container, new FavoritesFragment());
+                } else if (title.equals("About")) {
+                    trans.replace(R.id.bottom_fragment_container, new AboutFragment());
+                } else if (title.equals("Settings")) {
+                    trans.replace(R.id.bottom_fragment_container, new SettingsFragment());
+                }
+                trans.commit();
+                // hide the map fragment if necessary
+                FrameLayout mapContainer = (FrameLayout) findViewById(R.id.map_fragment_container);
+                mapContainer.setVisibility(title.equals("Local Map") ? View.VISIBLE : View.INVISIBLE);
+                // hide the search fragment if necessary
+                FrameLayout topContainer = (FrameLayout) findViewById(R.id.top_fragment_container);
+                topContainer.setVisibility(title.equals("Local Map") ? View.VISIBLE : View.INVISIBLE);
+                // hide the location button if necessary
+                mLocationButton.setVisibility(title.equals("Local Map") ? View.VISIBLE : View.INVISIBLE);
+            }
+        });
+        ImageView heroImage = (ImageView) mDrawerLayout.findViewById(R.id.hero_image);
+        heroImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // do nothing
+            }
+        });
     }
 
     private GoogleMapOptions getDefaultMapOptions() {
@@ -95,6 +172,30 @@ public class MainActivity extends Activity {
 
     private DrawerLayout mDrawerLayout;
     private GoogleMap mGoogleMap;
+    private FloatingActionButton mLocationButton;
+    private final LocationListener mLocationListener = new LocationListener() {
+        @Override
+        public void onLocationChanged(Location location) {
+            LatLng myLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+            // animate to user position
+            mGoogleMap.animateCamera(CameraUpdateFactory.newLatLng(myLatLng));
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+            // do nothing
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+            // do nothing
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+            // do nothing
+        }
+    };
 
     private final OnMapReadyCallback mOnMapReadyListener = new OnMapReadyCallback() {
         @Override
@@ -104,17 +205,23 @@ public class MainActivity extends Activity {
             mGoogleMap.setMyLocationEnabled(true); // want to show location indicator
             mGoogleMap.getUiSettings().setMyLocationButtonEnabled(false); // don't want to show the button
             // using custom 'my location' button
-            FloatingActionButton myLocationButton = (FloatingActionButton) findViewById(R.id.my_location_button);
-            myLocationButton.setOnClickListener(new View.OnClickListener() {
+            mLocationButton = (FloatingActionButton) findViewById(R.id.my_location_button);
+            mLocationButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Location myLocation = mGoogleMap.getMyLocation();
-                    if (myLocation == null) return;
-                    LatLng myLatLng = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
-                    // animate to user position
-                    mGoogleMap.animateCamera(CameraUpdateFactory.newLatLng(myLatLng));
+                    if (myLocation == null) {
+                        // make a location request
+                        AndroidUtils.requestCurrentLocation(mLocationListener, getApplicationContext());
+                    } else {
+                        LatLng myLatLng = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
+                        // animate to user position
+                        mGoogleMap.animateCamera(CameraUpdateFactory.newLatLng(myLatLng));
+                    }
                 }
             });
+            // go to user's current location
+            AndroidUtils.requestCurrentLocation(mLocationListener, getApplicationContext());
             // ToDo: it would be nice if we could avoid adding ALL the stops and just show nearby ones
             Collection<Stop> allStops = GlobalVariables.getInstance(getApplicationContext()).getStopMap().values();
             for (Stop s : allStops) {

@@ -36,8 +36,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/text_secondary"
-                android:textSize="@dimen/text_large"
-                android:textStyle="bold" />
+                android:textSize="@dimen/text_large" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -66,7 +65,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="4dp"
             android:textColor="@color/text"
-            android:textSize="@dimen/text_large" />
+            android:textSize="@dimen/text_regular" />
 
         <TextView
             android:id="@+id/trip_headsign"
