@@ -21,6 +21,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.droid.mooresoft.anotherbusapp.AlarmManager;
 import com.droid.mooresoft.anotherbusapp.AndroidUtils;
 import com.droid.mooresoft.anotherbusapp.Data;
 import com.droid.mooresoft.anotherbusapp.Departure;
@@ -220,11 +221,14 @@ public class StopWatchActivity extends FragmentActivity {
     };
 
     private class DepartureListAdapter extends PagerAdapter {
+        public DepartureListAdapter() {
+            mAlarmManager = new AlarmManager(getApplicationContext());
+        }
+
         @Override
         public void notifyDataSetChanged() {
             if (mStopPointToDepartureListMap == null) {
                 // there must have been an error
-                Log.d(getClass().toString(), "removing all views...");
                 mViewPager.removeAllViews();
             } else {
                 // proceed with normal view setup
@@ -265,12 +269,7 @@ public class StopWatchActivity extends FragmentActivity {
             list.setAdapter(adapter);
             adapter.clear();
             adapter.addAll(mStopPointToDepartureListMap.get(tag));
-            list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    // todo: want to be able to set stop alarms
-                }
-            });
+            list.setOnItemClickListener(mItemClickListener);
             // setup refresh behavior
             SwipeRefreshLayout refreshLayout = (SwipeRefreshLayout) root.findViewById(R.id.swipe_refresh_layout);
             refreshLayout.setOnRefreshListener(mRefreshListener);
@@ -315,6 +314,24 @@ public class StopWatchActivity extends FragmentActivity {
             return o == view;
         }
 
+        private AlarmManager mAlarmManager;
+
+        private final AdapterView.OnItemClickListener mItemClickListener = new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Departure departure = (Departure) parent.getAdapter().getItem(position);
+                // todo: show popup to set alarm
+                // currently we just default to 5 minute alarm for testing purposes
+                if (mAlarmManager.isAlarmed(departure)) {
+                    Toast.makeText(getApplicationContext(), "Alarm already set", Toast.LENGTH_SHORT).show();
+                } else {
+                    mAlarmManager.setAlarm(departure, 5);
+                    Toast.makeText(getApplicationContext(),
+                            "Alarm set for 5 minutes before departure", Toast.LENGTH_SHORT).show();
+                }
+            }
+        };
+
         private class DepartureListItemAdapter extends ArrayAdapter<Departure> {
             public DepartureListItemAdapter(Context context) {
                 super(context, R.layout.departure_list_item);
@@ -341,8 +358,8 @@ public class StopWatchActivity extends FragmentActivity {
                         R.drawable.circle, getResources().getColor(R.color.background), getContext());
                 outerCircle.setImageDrawable(outer);
                 innerCircle.setImageDrawable(inner);
-                // todo: alarm indicator
-                if (Math.random() * 100 < 33) {
+                // alarm indicator
+                if (mAlarmManager.isAlarmed(departure)) {
                     ImageView alarmView = (ImageView) convertView.findViewById(R.id.icon_alarm);
                     Drawable alarm = AndroidUtils.getTintedDrawable(
                             R.mipmap.ic_alarm_on, getResources().getColor(R.color.icon_inactive), getContext());
