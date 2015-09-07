@@ -2,6 +2,7 @@ package com.droid.mooresoft.anotherbusapp.activities;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
@@ -34,7 +35,7 @@ public class LauncherActivity extends Activity {
         super.onCreate(savedInstanceState);
         // inital view setup
         setContentView(R.layout.launcher_activity);
-        Drawable bus = AndroidUtils.getTintedDrawable(R.mipmap.large_bus, getResources().getColor(R.color.accent), this);
+        Drawable bus = AndroidUtils.getTintedDrawable(R.mipmap.large_bus, Color.WHITE, this);
         ImageView busView = (ImageView) findViewById(R.id.bus_image);
         busView.setImageDrawable(bus);
         // main purpose of the launcher activity is just to get all the stop data

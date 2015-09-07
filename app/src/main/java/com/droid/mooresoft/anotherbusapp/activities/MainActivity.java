@@ -6,6 +6,7 @@ import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
@@ -16,14 +17,12 @@ import android.support.v7.widget.CardView;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Pair;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -151,13 +150,10 @@ public class MainActivity extends Activity {
                 mLocationButton.setVisibility(title.equals("Local Map") ? View.VISIBLE : View.INVISIBLE);
             }
         });
-        ImageView heroImage = (ImageView) mDrawerLayout.findViewById(R.id.hero_image);
-        heroImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // do nothing
-            }
-        });
+        // decoration above the drawer list
+        ImageView titleIconView = (ImageView) findViewById(R.id.title_icon);
+        Drawable titleIcon = AndroidUtils.getTintedDrawable(R.mipmap.large_bus, Color.WHITE, this);
+        titleIconView.setImageDrawable(titleIcon);
     }
 
     private GoogleMapOptions getDefaultMapOptions() {
