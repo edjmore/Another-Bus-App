@@ -14,16 +14,27 @@ public class AlarmManager {
     }
 
     public boolean isAlarmed(Departure departure) {
-        // todo:
-        return false;
+        String key = getKey(departure);
+        return mSharedPrefs.contains(key);
     }
 
-    public void setAlarm(Departure departure, int minutes) {
-        // todo
+    public boolean setAlarm(Departure departure, int minutesBefore) {
+        String key = getKey(departure);
+        if (minutesBefore >= departure.getExpectedMins()) {
+            return false;
+        }
+        long alarmTimeMillis = System.currentTimeMillis() + ((departure.getExpectedMins() - minutesBefore) * 60 * 1000);
+        mSharedPrefs.edit().putLong(key, alarmTimeMillis).commit();
+        return true;
     }
 
     public void removeAlarm(Departure departure) {
-        // todo
+        String key = getKey(departure);
+        mSharedPrefs.edit().remove(key).commit();
+    }
+
+    private String getKey(Departure departure) {
+        return "alarm_" + departure.vehicleId + "_" + departure.stopId;
     }
 
     private SharedPreferences mSharedPrefs;

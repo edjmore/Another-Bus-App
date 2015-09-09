@@ -59,7 +59,7 @@
             android:background="@color/background"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:divider="@drawable/full_divider"
+            android:divider="@drawable/fav_divider"
             android:dividerHeight="1dp" />
 
         <!-- action bar shadow -->

@@ -10,6 +10,8 @@ import android.support.v4.view.ViewPager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.util.Pair;
+import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -17,7 +19,10 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.PopupWindow;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,6 +38,7 @@ import com.droid.mooresoft.anotherbusapp.R;
 import com.droid.mooresoft.anotherbusapp.Stop;
 import com.droid.mooresoft.anotherbusapp.UrlFactory;
 import com.droid.mooresoft.anotherbusapp.views.TabLayout;
+import com.droid.mooresoft.materiallibrary.widgets.FloatingActionButton;
 
 import org.json.JSONException;
 
@@ -54,7 +60,6 @@ public class StopWatchActivity extends FragmentActivity {
         // initial setup
         String stopName = getIntent().getStringExtra("stop_name");
         setTitle(stopName);
-        Log.d(getClass().toString(), "onCreate() " + stopName);
         mStop = GlobalVariables.getInstance(this).getStopMap().get(stopName);
         // favorites indicator in action bar
         setupFavoritesIndicator();
@@ -201,7 +206,7 @@ public class StopWatchActivity extends FragmentActivity {
         });
     }
 
-    public static final int MIN_REQUEST_INTERVAL = 1000 * 60; // millis
+    public static final int MIN_REQUEST_INTERVAL = 1000 * 60 * 3; // 3 minutes
 
     private Stop mStop;
     private ViewPager mViewPager;
@@ -269,7 +274,7 @@ public class StopWatchActivity extends FragmentActivity {
             list.setAdapter(adapter);
             adapter.clear();
             adapter.addAll(mStopPointToDepartureListMap.get(tag));
-            list.setOnItemClickListener(mItemClickListener);
+            list.setOnItemLongClickListener(mItemClickListener);
             // setup refresh behavior
             SwipeRefreshLayout refreshLayout = (SwipeRefreshLayout) root.findViewById(R.id.swipe_refresh_layout);
             refreshLayout.setOnRefreshListener(mRefreshListener);
@@ -316,19 +321,84 @@ public class StopWatchActivity extends FragmentActivity {
 
         private AlarmManager mAlarmManager;
 
-        private final AdapterView.OnItemClickListener mItemClickListener = new AdapterView.OnItemClickListener() {
+        private final AdapterView.OnItemLongClickListener mItemClickListener = new AdapterView.OnItemLongClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Departure departure = (Departure) parent.getAdapter().getItem(position);
-                // todo: show popup to set alarm
-                // currently we just default to 5 minute alarm for testing purposes
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                final Departure departure = (Departure) parent.getAdapter().getItem(position);
+                final ImageView alarmIconView = (ImageView) view.findViewById(R.id.icon_alarm);
                 if (mAlarmManager.isAlarmed(departure)) {
-                    Toast.makeText(getApplicationContext(), "Alarm already set", Toast.LENGTH_SHORT).show();
+                    mAlarmManager.removeAlarm(departure);
+                    Toast.makeText(getApplicationContext(), "Alarm removed", Toast.LENGTH_SHORT).show();
+                    alarmIconView.setVisibility(View.INVISIBLE);
                 } else {
-                    mAlarmManager.setAlarm(departure, 5);
-                    Toast.makeText(getApplicationContext(),
-                            "Alarm set for 5 minutes before departure", Toast.LENGTH_SHORT).show();
+                    // don't allow alarms less than 5 minutes from departure time
+                    if (departure.getExpectedMins() < 5) {
+                        Toast.makeText(getApplicationContext(),
+                                "Can't set alarms for less than 5 minutes", Toast.LENGTH_SHORT).show();
+                    } else {
+                        // todo: show popup to set alarm
+                        // currently we just default to 5 minute alarm for testing purposes
+                        final View popupView = View.inflate(getApplicationContext(), R.layout.set_alarm_popup, null);
+                        final SeekBar seekBar = (SeekBar) popupView.findViewById(R.id.seek_bar);
+                        seekBar.setMax(departure.getExpectedMins() - 5);
+                        final TextView minText = (TextView) popupView.findViewById(R.id.min_text);
+                        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                            @Override
+                            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                                float perc = (float) progress / seekBar.getMax();
+                                int mins = 5 + (int) (perc * (departure.getExpectedMins() - 5));
+                                minText.setText(mins + "");
+                            }
+
+                            @Override
+                            public void onStartTrackingTouch(SeekBar seekBar) {
+
+                            }
+
+                            @Override
+                            public void onStopTrackingTouch(SeekBar seekBar) {
+
+                            }
+                        });
+                        // popup dimensions
+                        final PopupWindow popupWindow = new PopupWindow(popupView,
+                                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+                        RelativeLayout background = (RelativeLayout) popupView.findViewById(R.id.popup_background);
+                        background.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                popupWindow.dismiss();
+                            }
+                        });
+                        View card = popupView.findViewById(R.id.card);
+                        card.setOnTouchListener(new View.OnTouchListener() {
+                            @Override
+                            public boolean onTouch(View v, MotionEvent event) {
+                                return true; // handled
+                            }
+                        });
+                        FloatingActionButton fab = (FloatingActionButton) popupView.findViewById(R.id.done_button);
+                        fab.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                float perc = (float) seekBar.getProgress() / seekBar.getMax();
+                                int mins = 5 + (int) (perc * (departure.getExpectedMins() - 5));
+                                boolean set = mAlarmManager.setAlarm(departure, mins);
+                                if (set) {
+                                    Toast.makeText(getApplicationContext(),
+                                            "Alarm set for " + mins + " mins minutes before departure", Toast.LENGTH_SHORT).show();
+                                    alarmIconView.setVisibility(View.VISIBLE);
+                                    popupWindow.dismiss();
+                                } else {
+                                    Toast.makeText(getApplicationContext(),
+                                            "Try setting an alarm closer to departure time", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        });
+                        popupWindow.showAtLocation(findViewById(R.id.view_pager), Gravity.CENTER, 0, 0);
+                    }
                 }
+                return true;
             }
         };
 
@@ -359,12 +429,11 @@ public class StopWatchActivity extends FragmentActivity {
                 outerCircle.setImageDrawable(outer);
                 innerCircle.setImageDrawable(inner);
                 // alarm indicator
-                if (mAlarmManager.isAlarmed(departure)) {
-                    ImageView alarmView = (ImageView) convertView.findViewById(R.id.icon_alarm);
-                    Drawable alarm = AndroidUtils.getTintedDrawable(
-                            R.mipmap.ic_alarm_on, getResources().getColor(R.color.icon_inactive), getContext());
-                    alarmView.setImageDrawable(alarm);
-                }
+                ImageView alarmView = (ImageView) convertView.findViewById(R.id.icon_alarm);
+                alarmView.setVisibility(mAlarmManager.isAlarmed(departure) ? View.VISIBLE : View.INVISIBLE);
+                Drawable alarm = AndroidUtils.getTintedDrawable(
+                        R.mipmap.ic_alarm_on, getResources().getColor(R.color.icon_inactive), getContext());
+                alarmView.setImageDrawable(alarm);
                 /* todo: busy indicator
                 ImageView busyView = (ImageView) convertView.findViewById(R.id.icon_busy);
                 Drawable people = AndroidUtils.getTintedDrawable(

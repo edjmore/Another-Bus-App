@@ -24,6 +24,7 @@ public class Departure implements Comparable<Departure> {
             // throw the parse exception up
             throw new JSONException(e.toString());
         }
+        vehicleId = jsonDeparture.getString("vehicle_id");
         // if we made it here without exception, we should be able to finish without exception
         if (jsonDeparture.getBoolean("is_scheduled")) {
             JSONObject jsonTrip = jsonDeparture.getJSONObject("trip");
@@ -65,6 +66,7 @@ public class Departure implements Comparable<Departure> {
     public String stopId;
     public String headsign, tripHeadsign;
     public int routeColor;
+    public String vehicleId;
 
     private long mExpectedDepartureTime;
 

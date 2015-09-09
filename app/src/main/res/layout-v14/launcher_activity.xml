@@ -4,25 +4,11 @@
     android:layout_height="match_parent"
     android:background="@color/primary">
 
-    <View
-        android:background="@android:color/white"
-        android:layout_above="@+id/color_top"
-        android:layout_width="match_parent"
-        android:layout_height="2dp" />
-
-    <View
-        android:id="@+id/color_top"
-        android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:layout_above="@+id/title_strip"
-        android:background="@color/accent" />
-
     <LinearLayout
         android:id="@+id/title_strip"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:background="@color/accent"
         android:gravity="center"
         android:orientation="horizontal">
 
@@ -43,19 +29,6 @@
             android:textSize="@dimen/text_largest" />
     </LinearLayout>
 
-    <View
-        android:id="@+id/color_bottom"
-        android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:layout_below="@+id/title_strip"
-        android:background="@color/accent" />
-
-    <View
-        android:background="@android:color/white"
-        android:layout_below="@+id/color_bottom"
-        android:layout_width="match_parent"
-        android:layout_height="2dp" />
-
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -65,7 +38,6 @@
         android:paddingEnd="48dp"
         android:paddingLeft="48dp"
         android:paddingRight="48dp"
-        android:paddingStart="48dp"
         android:text="@string/cumtd_credit"
         android:textColor="@color/white_text_inactive"
         android:textSize="@dimen/text_small" />

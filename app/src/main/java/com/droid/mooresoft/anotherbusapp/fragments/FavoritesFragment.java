@@ -24,7 +24,6 @@ import com.droid.mooresoft.anotherbusapp.R;
 import com.droid.mooresoft.anotherbusapp.Stop;
 import com.droid.mooresoft.anotherbusapp.activities.MainActivity;
 import com.droid.mooresoft.anotherbusapp.activities.StopWatchActivity;
-import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
 
@@ -60,8 +59,8 @@ public class FavoritesFragment extends Fragment {
                     startActivity(intent);
                 }
             });
-            // want user location updates so we can tell how far we are from each stop
-            AndroidUtils.requestLocationUpdates(mLocationListener, MIN_ELAPSED_TIME, MIN_ELAPSED_DISTANCE, getActivity());
+            // todo: just one location update?
+            AndroidUtils.requestCurrentLocation(mLocationListener, getActivity());
         }
         // setup the action bar
         ImageView drawerIconView = (ImageView) view.findViewById(R.id.drawer_icon);
@@ -143,7 +142,7 @@ public class FavoritesFragment extends Fragment {
             progressBar.setVisibility(mCurrentLocation == null ? View.VISIBLE : View.GONE);
             if (mCurrentLocation != null) {
                 TextView distanceView = (TextView) convertView.findViewById(R.id.distance_view);
-                String distString = String.format("%.2f", getDistanceToStop(mCurrentLocation, stop));
+                String distString = String.format("%.2f", AndroidUtils.getDistanceToStop(mCurrentLocation, stop));
                 distanceView.setText(distString);
                 // todo: units preference?
                 TextView distUnitsView = (TextView) convertView.findViewById(R.id.distance_units_view);
@@ -151,15 +150,5 @@ public class FavoritesFragment extends Fragment {
             }
             return convertView;
         }
-
-        private float getDistanceToStop(Location currentLocation, Stop stop) {
-            Location stopLocation = new Location("dummy_provider");
-            LatLng stopLatLng = stop.getLocation();
-            stopLocation.setLatitude(stopLatLng.latitude);
-            stopLocation.setLongitude(stopLatLng.longitude);
-            return currentLocation.distanceTo(stopLocation) / ONE_MILE;
-        }
-
-        private static final float ONE_MILE = 1609.344f; // meters
     }
 }

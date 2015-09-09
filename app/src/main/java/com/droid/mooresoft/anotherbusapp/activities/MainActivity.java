@@ -6,10 +6,8 @@ import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
-import android.location.LocationListener;
 import android.os.Bundle;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -47,6 +45,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMapOptions;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -57,6 +56,8 @@ import org.json.JSONException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Ed on 8/16/15.
@@ -80,6 +81,15 @@ public class MainActivity extends Activity {
 
     public void openDrawer() {
         mDrawerLayout.openDrawer(GravityCompat.START);
+    }
+
+    public void goToStop(String stopName) {
+        Marker m = mStopToMarkerMap.get(stopName);
+        if (m != null) {
+            LatLng pos = m.getPosition();
+            m.showInfoWindow();
+            mGoogleMap.animateCamera(CameraUpdateFactory.newLatLng(pos));
+        }
     }
 
     private void initializeDrawer() {
@@ -152,7 +162,8 @@ public class MainActivity extends Activity {
         });
         // decoration above the drawer list
         ImageView titleIconView = (ImageView) findViewById(R.id.title_icon);
-        Drawable titleIcon = AndroidUtils.getTintedDrawable(R.mipmap.large_bus, Color.WHITE, this);
+        Drawable titleIcon = AndroidUtils.getTintedDrawable(
+                R.mipmap.large_bus, getResources().getColor(R.color.accent), this);
         titleIconView.setImageDrawable(titleIcon);
     }
 
@@ -169,62 +180,39 @@ public class MainActivity extends Activity {
     private DrawerLayout mDrawerLayout;
     private GoogleMap mGoogleMap;
     private FloatingActionButton mLocationButton;
-    private final LocationListener mLocationListener = new LocationListener() {
-        @Override
-        public void onLocationChanged(Location location) {
-            LatLng myLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-            // animate to user position
-            mGoogleMap.animateCamera(CameraUpdateFactory.newLatLng(myLatLng));
-        }
-
-        @Override
-        public void onStatusChanged(String provider, int status, Bundle extras) {
-            // do nothing
-        }
-
-        @Override
-        public void onProviderEnabled(String provider) {
-            // do nothing
-        }
-
-        @Override
-        public void onProviderDisabled(String provider) {
-            // do nothing
-        }
-    };
+    private Map<String, Marker> mStopToMarkerMap;
 
     private final OnMapReadyCallback mOnMapReadyListener = new OnMapReadyCallback() {
         @Override
         public void onMapReady(GoogleMap googleMap) {
             mGoogleMap = googleMap;
             mGoogleMap.setOnCameraChangeListener(mOnCameraChangeListener);
-            mGoogleMap.setMyLocationEnabled(true); // want to show location indicator
-            mGoogleMap.getUiSettings().setMyLocationButtonEnabled(false); // don't want to show the button
+            mGoogleMap.setMyLocationEnabled(true);
+            mGoogleMap.getUiSettings().setMyLocationButtonEnabled(false);
             // using custom 'my location' button
             mLocationButton = (FloatingActionButton) findViewById(R.id.my_location_button);
             mLocationButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Location myLocation = mGoogleMap.getMyLocation();
-                    if (myLocation == null) {
-                        // make a location request
-                        AndroidUtils.requestCurrentLocation(mLocationListener, getApplicationContext());
-                    } else {
-                        LatLng myLatLng = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
+                    Location location = mGoogleMap.getMyLocation();
+                    if (location != null) {
+                        LatLng myLatLng = new LatLng(location.getLatitude(), location.getLongitude());
                         // animate to user position
                         mGoogleMap.animateCamera(CameraUpdateFactory.newLatLng(myLatLng));
                     }
                 }
             });
-            // go to user's current location
-            AndroidUtils.requestCurrentLocation(mLocationListener, getApplicationContext());
             // ToDo: it would be nice if we could avoid adding ALL the stops and just show nearby ones
             Collection<Stop> allStops = GlobalVariables.getInstance(getApplicationContext()).getStopMap().values();
             for (Stop s : allStops) {
                 MarkerOptions markerOptions = new MarkerOptions()
                         .position(s.getLocation())
-                        .title(s.stopName);
-                mGoogleMap.addMarker(markerOptions);
+                        .title(s.stopName)
+                        .snippet("< tap for departures >")
+                        .icon(BitmapDescriptorFactory.fromResource(R.mipmap.marker_icon));
+                Marker m = mGoogleMap.addMarker(markerOptions);
+                if (mStopToMarkerMap == null) mStopToMarkerMap = new HashMap<>();
+                mStopToMarkerMap.put(s.stopName, m);
             }
             mGoogleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
                 @Override
@@ -318,18 +306,7 @@ public class MainActivity extends Activity {
             mLeftIconBack.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    toggleKeyboard(false);
-                    // show nav drawer icon instead
-                    v.setVisibility(View.GONE);
-                    mLeftIconDrawer.setVisibility(View.VISIBLE);
-                    // clear text and hide cancel button
-                    mEditText.setText("");
-                    mRightIcon.setVisibility(View.GONE);
-                    // hide list card and clear contents
-                    animateListCard(false);
-                    // switch back to text view
-                    mTextView.setVisibility(View.VISIBLE);
-                    mEditText.setVisibility(View.GONE);
+                    exitSearchMode();
                 }
             });
             // text view will serve as button to begin search
@@ -410,10 +387,9 @@ public class MainActivity extends Activity {
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     String stopName = (String) mListView.getItemAtPosition(position);
                     Data.saveRecentStop(stopName, getActivity());
-                    // launch stop detail activity
-                    Intent intent = new Intent(getActivity(), StopWatchActivity.class);
-                    intent.putExtra("stop_name", stopName);
-                    startActivity(intent);
+                    // go to stop on map
+                    exitSearchMode();
+                    ((MainActivity) getActivity()).goToStop(stopName);
                 }
             });
             // clear text button
@@ -426,6 +402,21 @@ public class MainActivity extends Activity {
                     showRecentStops();
                 }
             });
+        }
+
+        private void exitSearchMode() {
+            toggleKeyboard(false);
+            // show nav drawer icon instead
+            mLeftIconBack.setVisibility(View.GONE);
+            mLeftIconDrawer.setVisibility(View.VISIBLE);
+            // clear text and hide cancel button
+            mEditText.setText("");
+            mRightIcon.setVisibility(View.GONE);
+            // hide list card and clear contents
+            animateListCard(false);
+            // switch back to text view
+            mTextView.setVisibility(View.VISIBLE);
+            mEditText.setVisibility(View.GONE);
         }
 
         private void animateListCard(boolean slideUp) {
